@@ -1,2 +1,3 @@
-// Deploy entry: automatic scheduler (5 cycles/day, active hours, verify every 30 min)
+// Deploy entry: automatic scheduler (config in lib/hardcoded-config.js)
+require("./lib/bootstrap");
 require("./src/daemon.js");

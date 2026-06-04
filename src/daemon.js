@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("../lib/bootstrap");
 const { spawn } = require("child_process");
 const path = require("path");
 const { loadConfig } = require("../lib/config");

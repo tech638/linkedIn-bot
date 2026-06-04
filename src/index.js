@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("../lib/bootstrap");
 const readline = require("readline");
 const { loadConfig } = require("../lib/config");
 const { loadState, saveState, getGroupState } = require("../lib/state");

@@ -14,23 +14,9 @@ No web UI, no port, no manual cron. Push the repo and run **`npm start`** — th
 1. **New project** → Deploy from GitHub
 2. **Dockerfile** builder (includes Chromium)
 3. **Volume** → mount `/app/data` (LinkedIn login + daily state survive redeploys)
-4. **Variables** — copy from your `.env`:
-
-| Variable | Railway value |
-|----------|----------------|
-| `GOOGLE_SHEET_ID` | your sheet |
-| `USE_SHEET_GROUPS` | `true` |
-| `ENGAGE_ONLY` | `false` |
-| `CHROME_BOT_DATA_DIR` | `/app/data/linkedin-bot-chrome` |
-| `DATA_DIR` | `/app/data` |
-| `CHROME_PATH` | `/usr/bin/chromium` |
-| `CHROME_HEADLESS` | `true` |
-| `TZ` | `America/New_York` (your timezone) |
-| `CYCLES_PER_DAY` | `5` |
-| `ACTIVE_HOURS_START` | `8` |
-| `ACTIVE_HOURS_END` | `20` |
-
-Plus your post/comment selectors from `.env`.
+4. **No Railway env variables required** — settings live in:
+   - `lib/hardcoded-config.js` (sheet ID, schedule, Chrome, limits)
+   - `lib/auth-credentials.js` (LinkedIn login)
 
 5. **Start command:** `node src/daemon.js` (default from Dockerfile)
 

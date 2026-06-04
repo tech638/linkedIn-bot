@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("../lib/bootstrap");
 const { loadConfig } = require("../lib/config");
 const { loadState, saveState, loadVerifications, saveVerifications } = require("../lib/state");
 const { prepareBrowser } = require("../lib/chrome");
