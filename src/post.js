@@ -68,15 +68,12 @@ async function runPost(page, group, config, limits, state) {
 
   const liPage = getLinkedInPage(page);
   let onGroup = false;
-  if (!liPage.__realProfileCli) {
-    try {
-      const current = await liPage.url();
-      onGroup =
-        current.includes(String(group.id)) ||
-        current.includes("/groups/");
-    } catch {
-      onGroup = false;
-    }
+  try {
+    const current = await liPage.url();
+    onGroup =
+      current.includes(String(group.id)) || current.includes("/groups/");
+  } catch {
+    onGroup = false;
   }
 
   if (!onGroup) {

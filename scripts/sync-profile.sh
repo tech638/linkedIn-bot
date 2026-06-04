@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Copies Profile 1 (LinkedIn login) into the bot's Chrome data dir. Run while Chrome is closed.
+# DEPRECATED — do not use with headless/Railway. Use: npm run export-cookies
+# Optional: copies main Chrome profile into bot data dir. Close Chrome first.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
