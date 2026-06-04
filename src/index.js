@@ -99,17 +99,19 @@ function maxGroupAttempts(portfolioSize) {
   return Math.min(Math.max(1, configured), portfolioSize);
 }
 
-async function runCycleOnGroup(page, group, config, state, limits) {
+async function runCycleOnGroup(page, group, config, state, limits, options = {}) {
   const gs = getGroupState(state, group.id);
   let partial = false;
 
-  console.log("  → Step 1: LinkedIn login (bot profile)...");
-  const login = await ensureLinkedInLoggedIn(page);
-  if (!login.ok && !login.alreadyLoggedIn) {
-    console.warn(`  → Skipping group — login failed (${login.reason})`);
-    gs.lastSkipReason = login.reason || "login_failed";
-    gs.lastVisited = new Date().toISOString();
-    return { skipped: true, reason: login.reason || "login_failed", partial: true, gs };
+  if (!options.skipLogin) {
+    console.log("  → Step 1: LinkedIn login (bot profile)...");
+    const login = await ensureLinkedInLoggedIn(page);
+    if (!login.ok && !login.alreadyLoggedIn) {
+      console.warn(`  → Skipping group — login failed (${login.reason})`);
+      gs.lastSkipReason = login.reason || "login_failed";
+      gs.lastVisited = new Date().toISOString();
+      return { skipped: true, reason: login.reason || "login_failed", partial: true, gs };
+    }
   }
 
   console.log(`  → Step 2: Open group: ${group.url}`);
@@ -229,52 +231,60 @@ async function runOneCycle() {
 
   const browser = await prepareBrowser();
   const page = await browser.newPage();
+  page.__browser = browser;
+  browser.__lastPage = page;
   const { applyStealthToPage } = require("../lib/browser-stealth");
   await applyStealthToPage(page);
   const keepBrowserOpen = shouldKeepBrowserOpen();
 
   try {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const group = pickGroupForCycle(portfolio, state, tried);
-      if (!group) {
-        console.log("No more groups to try this cycle.");
+    console.log("\n  → Step 1: LinkedIn login (once per cycle)...");
+    const cycleLogin = await ensureLinkedInLoggedIn(page);
+    if (!cycleLogin.ok && !cycleLogin.alreadyLoggedIn) {
+      partial = true;
+      console.warn(
+        `  → Cycle aborted — login failed (${cycleLogin.reason}). Set LINKEDIN_VERIFICATION_CODE on Railway or log in locally once.`
+      );
+    } else {
+      page.__cycleLoginOk = true;
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const group = pickGroupForCycle(portfolio, state, tried);
+        if (!group) {
+          console.log("No more groups to try this cycle.");
+          break;
+        }
+        tried.add(group.id);
+        lastGroup = group;
+
+        console.log(`\n══ Cycle ${state.daily.cycles + 1}/${config.scheduling.cyclesPerDay} ══`);
+        if (maxAttempts > 1) {
+          console.log(`Attempt ${attempt + 1}/${maxAttempts} in this cycle`);
+        }
+        console.log(`Group: ${group.name} (${group.id})`);
+        console.log(
+          `Quality: ${group.qualityScore ?? 3} | UTM: ${group.utmSlug || group.id} | Limits: ${limits.multiplier * 100}%`
+        );
+        console.log(
+          `Today so far: ${state.daily.likes} likes, ${state.daily.comments} comments, ${state.daily.posts} posts`
+        );
+
+        const result = await runCycleOnGroup(page, group, config, state, limits, {
+          skipLogin: true,
+        });
+        state.engagedItems[group.id] = result.gs;
+
+        if (result.skipped) {
+          partial = true;
+          if (attempt + 1 < maxAttempts) {
+            console.log("  → Trying next group in rotation...");
+          }
+          continue;
+        }
+
+        cycleWorked = true;
+        partial = result.partial;
         break;
       }
-      tried.add(group.id);
-      lastGroup = group;
-
-      console.log(`\n══ Cycle ${state.daily.cycles + 1}/${config.scheduling.cyclesPerDay} ══`);
-      if (maxAttempts > 1) {
-        console.log(`Attempt ${attempt + 1}/${maxAttempts} in this cycle`);
-      }
-      console.log(`Group: ${group.name} (${group.id})`);
-      console.log(
-        `Quality: ${group.qualityScore ?? 3} | UTM: ${group.utmSlug || group.id} | Limits: ${limits.multiplier * 100}%`
-      );
-      console.log(
-        `Today so far: ${state.daily.likes} likes, ${state.daily.comments} comments, ${state.daily.posts} posts`
-      );
-
-      const result = await runCycleOnGroup(
-        page,
-        group,
-        config,
-        state,
-        limits
-      );
-      state.engagedItems[group.id] = result.gs;
-
-      if (result.skipped) {
-        partial = true;
-        if (attempt + 1 < maxAttempts) {
-          console.log("  → Trying next group in rotation...");
-        }
-        continue;
-      }
-
-      cycleWorked = true;
-      partial = result.partial;
-      break;
     }
 
     if (!cycleWorked && lastGroup) {
