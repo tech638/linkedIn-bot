@@ -1,4 +1,5 @@
 require("../lib/bootstrap");
+const { botProfileReady, CHROME_BOT_DATA_DIR } = require("../lib/chrome");
 const { spawn } = require("child_process");
 const path = require("path");
 const { loadConfig } = require("../lib/config");
@@ -37,9 +38,24 @@ async function daemonLoop() {
   const config = loadConfig();
   const tz = process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone;
   console.log("LinkedIn Bot v1.1.0 — scheduler running (no API, fully automatic)");
+  const profileDir = CHROME_BOT_DATA_DIR;
+  const hasProfile = botProfileReady();
+  const onRailwayVolume = profileDir.startsWith("/app/data");
+  console.log(`Bot Chrome profile: ${profileDir}`);
   console.log(
-    `Bot Chrome: ${process.env.CHROME_BOT_DATA_DIR || "(default)"} (login → group, local & production)\n`
+    hasProfile
+      ? "  → Profile has saved data — restarts should reuse session (no new OTP) if volume persists."
+      : "  → Profile empty — first login will need OTP; mount /app/data volume on Railway."
   );
+  if (
+    (process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === "production") &&
+    !onRailwayVolume
+  ) {
+    console.warn(
+      "  ⚠ CHROME_BOT_DATA_DIR is not on /app/data — each redeploy may wipe login and trigger new OTP emails."
+    );
+  }
+  console.log("");
   if (isTestMode()) {
     console.log("  ⚠ TEST_MODE=true — fast schedule (short delays, 24h active window)");
   }

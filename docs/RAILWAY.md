@@ -20,7 +20,18 @@ No web UI, no port, no manual cron. Push the repo and run **`npm start`** — th
 
 5. **Start command:** `node src/daemon.js` (default from Dockerfile)
 
-6. **LinkedIn login:** Bot Chrome → email/password → open group. **2Captcha** runs when a captcha appears (logs captcha type, e.g. `funcaptcha_arkose`, `recaptcha_v2`). API key: `TWOCAPTCHA_API_KEY` in `lib/hardcoded-config.js` or Railway variables. Mount `/app/data` for persistent bot profile.
+6. **LinkedIn login:** Bot Chrome → email/password → open group.
+
+   **6-digit email OTP (Railway):** Project → your service → **Variables** → **New variable**
+   - Name: `LINKEDIN_VERIFICATION_CODE`
+   - Value: `038323` (latest 6 digits from LinkedIn email, no spaces)
+   - **Redeploy** or restart the service after each new code (codes expire in minutes).
+
+   **After one successful login:** session is stored in `/app/data/linkedin-bot-chrome`. Restarts should log `Session restored from bot profile` and **not** send a new OTP. You can then **remove** `LINKEDIN_VERIFICATION_CODE` from Railway.
+
+   **Required:** Volume mounted at `/app/data` — without it, every redeploy wipes the profile and LinkedIn emails a new code again.
+
+   **2Captcha** is only for puzzle captchas, not email OTP.
 
 7. **Test schedule on Railway:** `RAILWAY_TEST_SCHEDULE=true` in `lib/hardcoded-config.js` runs cycles every **5 minutes** (24h window). Set `RAILWAY_TEST_SCHEDULE` to `"false"` before real production.
 

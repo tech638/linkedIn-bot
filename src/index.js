@@ -229,6 +229,8 @@ async function runOneCycle() {
 
   const browser = await prepareBrowser();
   const page = await browser.newPage();
+  const { applyStealthToPage } = require("../lib/browser-stealth");
+  await applyStealthToPage(page);
   const keepBrowserOpen = shouldKeepBrowserOpen();
 
   try {
