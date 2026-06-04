@@ -7,6 +7,7 @@ bin-release/
 # Other files and folders
 .settings/
 .env
+linkedin-cookies.json
 credentials.json
 *-credentials.json
 !credentials.json.example

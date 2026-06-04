@@ -20,16 +20,23 @@ No web UI, no port, no manual cron. Push the repo and run **`npm start`** — th
 
 5. **Start command:** `node src/daemon.js` (default from Dockerfile)
 
-6. **LinkedIn session (recommended):** Railway datacenter IPs often block email/password login (you will see `Still on login page` / `login_failed`). After a successful login on your laptop:
+6. **LinkedIn session (required on Railway):** Email/password login **does not work** in headless on Railway (`login_failed` on `/login/`). Use saved cookies instead:
+
+   **On your laptop** (log in once with visible Chrome — `CHROME_HEADLESS=false` in `.env` or local run):
 
    ```bash
-   # From your machine (profile path from lib/hardcoded-config.js / CHROME_BOT_DATA_DIR)
-   railway volume list
-   railway run bash   # or use Railway shell + upload
-   # Copy ~/.config/linkedin-bot-chrome (or your local bot profile) into the volume at /app/data/linkedin-bot-chrome
+   npm run cycle          # complete LinkedIn login in the bot window
+   npm run export-cookies # writes linkedin-cookies.json
    ```
 
-   The bot stores Chrome under `CHROME_BOT_DATA_DIR` on the mounted volume so `li_at` cookies survive redeploys.
+   **On Railway** (pick one):
+
+   - Upload `linkedin-cookies.json` to the volume at `/app/data/linkedin-cookies.json`
+   - Or set variable `LINKEDIN_LI_AT` to the `li_at` cookie value (DevTools → Application → Cookies → linkedin.com)
+
+   Redeploy. Logs should show `Restoring LinkedIn session` then `Session restore OK`.
+
+   Production skips password login when no session file is present (`no_session_on_server`).
 
 ## Local
 
