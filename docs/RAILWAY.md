@@ -38,6 +38,8 @@ No web UI, no port, no manual cron. Push the repo and run **`npm start`** — th
 
    Production skips password login when no session file is present (`no_session_on_server`).
 
+7. **Test schedule on Railway:** `RAILWAY_TEST_SCHEDULE=true` in `lib/hardcoded-config.js` runs cycles every **5 minutes** (24h window). Set `RAILWAY_TEST_SCHEDULE` to `"false"` before real production.
+
 ## Local
 
 ```bash
