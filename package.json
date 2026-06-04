@@ -14,8 +14,7 @@
     "sync-profile": "bash scripts/sync-profile.sh",
     "reset-today": "node scripts/reset-daily-counters.js",
     "reset-fresh": "node scripts/reset-fresh.js",
-    "reset-deploy": "CLEAR_ALL_STATE=true node scripts/reset-fresh.js",
-    "export-cookies": "node scripts/export-linkedin-cookies.js"
+    "reset-deploy": "CLEAR_ALL_STATE=true node scripts/reset-fresh.js"
   },
   "repository": {
     "type": "git",

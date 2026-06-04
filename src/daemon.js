@@ -37,6 +37,9 @@ async function daemonLoop() {
   const config = loadConfig();
   const tz = process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone;
   console.log("LinkedIn Bot v1.1.0 — scheduler running (no API, fully automatic)");
+  console.log(
+    `Bot Chrome: ${process.env.CHROME_BOT_DATA_DIR || "(default)"} (login → group, local & production)\n`
+  );
   if (isTestMode()) {
     console.log("  ⚠ TEST_MODE=true — fast schedule (short delays, 24h active window)");
   }

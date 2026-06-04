@@ -20,23 +20,7 @@ No web UI, no port, no manual cron. Push the repo and run **`npm start`** — th
 
 5. **Start command:** `node src/daemon.js` (default from Dockerfile)
 
-6. **LinkedIn session (required on Railway):** Email/password login **does not work** in headless on Railway (`login_failed` on `/login/`). Use saved cookies instead:
-
-   **On your laptop** (log in once with visible Chrome — `CHROME_HEADLESS=false` in `.env` or local run):
-
-   ```bash
-   npm run cycle          # complete LinkedIn login in the bot window
-   npm run export-cookies # writes linkedin-cookies.json
-   ```
-
-   **On Railway** (pick one):
-
-   - Upload `linkedin-cookies.json` to the volume at `/app/data/linkedin-cookies.json`
-   - Or set variable `LINKEDIN_LI_AT` to the `li_at` cookie value (DevTools → Application → Cookies → linkedin.com)
-
-   Redeploy. Logs should show `Restoring LinkedIn session` then `Session restore OK`.
-
-   Production skips password login when no session file is present (`no_session_on_server`).
+6. **LinkedIn login:** Same flow locally and on Railway — bot Chrome opens → email/password login (`lib/auth-credentials.js`) → open group. Mount `/app/data` so the bot profile (`/app/data/linkedin-bot-chrome`) keeps you logged in between cycles.
 
 7. **Test schedule on Railway:** `RAILWAY_TEST_SCHEDULE=true` in `lib/hardcoded-config.js` runs cycles every **5 minutes** (24h window). Set `RAILWAY_TEST_SCHEDULE` to `"false"` before real production.
 
