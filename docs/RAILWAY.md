@@ -20,7 +20,16 @@ No web UI, no port, no manual cron. Push the repo and run **`npm start`** — th
 
 5. **Start command:** `node src/daemon.js` (default from Dockerfile)
 
-6. **LinkedIn login (once):** Copy `linkedin-bot-chrome` from your laptop into the volume, or let the first cycle complete login (may be harder on datacenter IP).
+6. **LinkedIn session (recommended):** Railway datacenter IPs often block email/password login (you will see `Still on login page` / `login_failed`). After a successful login on your laptop:
+
+   ```bash
+   # From your machine (profile path from lib/hardcoded-config.js / CHROME_BOT_DATA_DIR)
+   railway volume list
+   railway run bash   # or use Railway shell + upload
+   # Copy ~/.config/linkedin-bot-chrome (or your local bot profile) into the volume at /app/data/linkedin-bot-chrome
+   ```
+
+   The bot stores Chrome under `CHROME_BOT_DATA_DIR` on the mounted volume so `li_at` cookies survive redeploys.
 
 ## Local
 
