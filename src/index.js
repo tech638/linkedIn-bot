@@ -116,9 +116,16 @@ async function runCycleOnGroup(page, group, config, state, limits, options = {})
 
   console.log(`  → Step 2: Open group: ${group.url}`);
   await visitGroup(page, group.url);
+  const { prepareGroupPage } = require("../lib/linkedin");
+  await prepareGroupPage(page, group.url);
   await sleepBrief();
 
   let check = await assessGroupPage(page);
+  if (check.accessible) {
+    console.log(
+      `  → Group ready: feed=${check.hasFeed ? "yes" : "no"} composer=${check.hasComposer ? "yes" : "no"}`
+    );
+  }
   if (!check.accessible) {
     console.warn(`  → Skipping group — ${check.reason}`);
     gs.lastSkipReason = check.reason;
