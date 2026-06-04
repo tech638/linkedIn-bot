@@ -20,7 +20,7 @@ No web UI, no port, no manual cron. Push the repo and run **`npm start`** — th
 
 5. **Start command:** `node src/daemon.js` (default from Dockerfile)
 
-6. **LinkedIn login:** Same flow locally and on Railway — bot Chrome opens → email/password login (`lib/auth-credentials.js`) → open group. Mount `/app/data` so the bot profile (`/app/data/linkedin-bot-chrome`) keeps you logged in between cycles.
+6. **LinkedIn login:** Bot Chrome → email/password → open group. **2Captcha** runs when a captcha appears (logs captcha type, e.g. `funcaptcha_arkose`, `recaptcha_v2`). API key: `TWOCAPTCHA_API_KEY` in `lib/hardcoded-config.js` or Railway variables. Mount `/app/data` for persistent bot profile.
 
 7. **Test schedule on Railway:** `RAILWAY_TEST_SCHEDULE=true` in `lib/hardcoded-config.js` runs cycles every **5 minutes** (24h window). Set `RAILWAY_TEST_SCHEDULE` to `"false"` before real production.
 
