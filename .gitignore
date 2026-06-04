@@ -6,6 +6,14 @@ bin-release/
 
 # Other files and folders
 .settings/
+.env
+credentials.json
+*-credentials.json
+!credentials.json.example
+.engagement-state.json
+.verifications.json
+logs/
+/node_modules
 
 # Executables
 *.swf
