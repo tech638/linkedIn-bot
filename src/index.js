@@ -126,23 +126,6 @@ async function runCycleOnGroup(page, group, config, state, limits, options = {})
       `  → Group ready: feed=${check.hasFeed ? "yes" : "no"} composer=${check.hasComposer ? "yes" : "no"}`
     );
   }
-  if (!check.accessible && (check.reason === "auth_wall" || check.reason === "login_required")) {
-    const { handleLinkedInAuthWall } = require("../lib/linkedin-login");
-    console.log("  → Retrying after LinkedIn security / login redirect…");
-    const cleared = await handleLinkedInAuthWall(page, { targetUrl: group.url });
-    if (cleared.ok) {
-      await visitGroup(page, group.url);
-      const { prepareGroupPage } = require("../lib/linkedin");
-      await prepareGroupPage(page, group.url);
-      check = await assessGroupPage(page);
-      if (check.accessible) {
-        console.log(
-          `  → Group ready: feed=${check.hasFeed ? "yes" : "no"} composer=${check.hasComposer ? "yes" : "no"}`
-        );
-      }
-    }
-  }
-
   if (!check.accessible) {
     console.warn(`  → Skipping group — ${check.reason}`);
     gs.lastSkipReason = check.reason;
