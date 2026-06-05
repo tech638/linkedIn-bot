@@ -121,6 +121,17 @@ async function runCycleOnGroup(page, group, config, state, limits, options = {})
   await sleepBrief();
 
   let check = await assessGroupPage(page);
+  if (!check.accessible && check.reason === "login_required") {
+    const { ensureAuthForTarget } = require("../lib/linkedin-login");
+    console.log("  → Still on login — running email/password + captcha flow…");
+    const auth = await ensureAuthForTarget(page, group.url);
+    if (auth.ok) {
+      await visitGroup(page, group.url);
+      const { prepareGroupPage } = require("../lib/linkedin");
+      await prepareGroupPage(page, group.url);
+      check = await assessGroupPage(page);
+    }
+  }
   if (check.accessible) {
     console.log(
       `  → Group ready: feed=${check.hasFeed ? "yes" : "no"} composer=${check.hasComposer ? "yes" : "no"}`
