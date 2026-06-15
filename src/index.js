@@ -76,7 +76,7 @@ async function loadPortfolio() {
     const url = fixedGroupUrl();
     if (!url) {
       throw new Error(
-        "USE_SHEET_GROUPS=false but no FIXED_GROUP_URL / TEST_GROUP_URL in .env."
+        "USE_SHEET_GROUPS=false but no FIXED_GROUP_URL / TEST_GROUP_URL in hardcoded-config.js."
       );
     }
     console.log("Fixed group mode: sheet skipped.");

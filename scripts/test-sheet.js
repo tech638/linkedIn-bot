@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-require("dotenv").config();
+require("../lib/bootstrap");
 const { loadTasksFromSheet, sheetCsvUrl, formatError } = require("../lib/sheets");
 
 (async () => {

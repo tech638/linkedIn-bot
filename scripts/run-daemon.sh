@@ -8,20 +8,11 @@ cd "$ROOT"
 
 mkdir -p logs
 
-if [[ -f "$ROOT/.env" ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  source "$ROOT/.env"
-  set +a
-fi
-
 export DISPLAY="${DISPLAY:-:0}"
-
-# Optional: force Chrome to use bot profile dir from .env
-export CHROME_PATH="${CHROME_PATH:-/opt/google/chrome/google-chrome}"
 
 echo "=== $(date -Iseconds) LinkedIn bot daemon starting ==="
 echo "Project: $ROOT"
+echo "Config: lib/hardcoded-config.js"
 echo "DISPLAY=$DISPLAY"
 
-exec node src/daemon.js
+exec node index.js

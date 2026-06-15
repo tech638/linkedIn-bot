@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-require("dotenv").config();
+require("../lib/bootstrap");
 const fs = require("fs");
 const path = require("path");
 
 const credPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 if (!credPath) {
-  console.error("Set GOOGLE_APPLICATION_CREDENTIALS=./credentials.json in .env");
+  console.error("Set GOOGLE_APPLICATION_CREDENTIALS in lib/hardcoded-config.js");
   process.exit(1);
 }
 

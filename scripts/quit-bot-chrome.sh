@@ -3,11 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-set -a
-[ -f "$ROOT/.env" ] && . "$ROOT/.env"
-set +a
-
-BOT_DATA="${CHROME_BOT_DATA_DIR:-$HOME/.config/linkedin-bot-chrome}"
+BOT_DATA="$(node -e "require('$ROOT/lib/bootstrap'); console.log(process.env.CHROME_BOT_DATA_DIR)")"
 LOCK="$BOT_DATA/SingletonLock"
 
 echo "Closing bot Chrome ($BOT_DATA)..."

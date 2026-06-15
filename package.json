@@ -9,12 +9,15 @@
     "verify": "node src/verify.js",
     "audit-groups": "node scripts/audit-groups.js",
     "test-sheet": "node scripts/test-sheet.js",
-    "engage-only": "ENGAGE_ONLY=true node scripts/run-one-cycle.js",
-    "post-only": "POST_ONLY=true node scripts/run-one-cycle.js",
+    "engage-only": "node scripts/run-one-cycle.js --engage-only",
+    "post-only": "node scripts/run-one-cycle.js --post-only",
     "sync-profile": "bash scripts/sync-profile.sh",
+    "export-profile": "bash scripts/quit-bot-chrome.sh && node scripts/export-chrome-profile.js",
+    "import-profile": "node scripts/import-chrome-profile.js",
+    "push-profile": "bash scripts/push-profile-to-railway.sh",
     "reset-today": "node scripts/reset-daily-counters.js",
     "reset-fresh": "node scripts/reset-fresh.js",
-    "reset-deploy": "CLEAR_ALL_STATE=true node scripts/reset-fresh.js"
+    "reset-deploy": "node scripts/reset-fresh.js --clear-all"
   },
   "repository": {
     "type": "git",
@@ -23,7 +26,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^17.4.2",
     "googleapis": "^172.0.0",
     "puppeteer-core": "^25.0.4"
   }

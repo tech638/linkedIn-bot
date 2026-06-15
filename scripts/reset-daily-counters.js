@@ -3,7 +3,7 @@
  * Reset today's daily counters (cycles, likes, comments, posts) so you can run again.
  * Keeps group history, post rotation index, and verification queue.
  */
-require("dotenv").config();
+require("../lib/bootstrap");
 const fs = require("fs");
 const path = require("path");
 const { STATE_PATH, loadState, saveState, todayLocal } = require("../lib/state");

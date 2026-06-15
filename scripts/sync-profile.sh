@@ -4,13 +4,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-set -a
-[ -f "$ROOT/.env" ] && . "$ROOT/.env"
-set +a
-
+BOT_DATA="$(node -e "require('$ROOT/lib/bootstrap'); console.log(process.env.CHROME_BOT_DATA_DIR)")"
 SOURCE_DATA="${CHROME_USER_DATA_DIR:-$HOME/.config/google-chrome}"
 SOURCE_PROFILE="${CHROME_PROFILE:-Profile 1}"
-BOT_DATA="${CHROME_BOT_DATA_DIR:-$HOME/.config/linkedin-bot-chrome}"
 LOCK="$SOURCE_DATA/SingletonLock"
 
 if [ -L "$LOCK" ]; then

@@ -1,4 +1,5 @@
 require("../lib/bootstrap");
+const fs = require("fs");
 const { botProfileReady, CHROME_BOT_DATA_DIR } = require("../lib/chrome");
 const { spawn } = require("child_process");
 const path = require("path");
@@ -47,10 +48,7 @@ async function daemonLoop() {
       ? "  → Profile has saved data — restarts should reuse session (no new OTP) if volume persists."
       : "  → Profile empty — first login will need OTP; mount /app/data volume on Railway."
   );
-  if (
-    (process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === "production") &&
-    !onRailwayVolume
-  ) {
+  if (fs.existsSync("/app/data") && !onRailwayVolume) {
     console.warn(
       "  ⚠ CHROME_BOT_DATA_DIR is not on /app/data — each redeploy may wipe login and trigger new OTP emails."
     );

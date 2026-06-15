@@ -2,11 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-set -a
-[ -f "$ROOT/.env" ] && . "$ROOT/.env"
-set +a
-
-CHROME="${CHROME_PATH:-/opt/google/chrome/google-chrome}"
+CHROME="$(node -e "require('$ROOT/lib/bootstrap'); console.log(process.env.CHROME_PATH)" 2>/dev/null || echo /opt/google/chrome/google-chrome)"
 USER_DATA="${CHROME_USER_DATA_DIR:-$HOME/.config/google-chrome}"
 LOCK="$USER_DATA/SingletonLock"
 

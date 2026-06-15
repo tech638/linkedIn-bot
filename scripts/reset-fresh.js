@@ -3,7 +3,7 @@
  * Fresh start: reset today's counters and optional visit history.
  * Keeps post rotation index and verification queue unless CLEAR_ALL_STATE=true.
  */
-require("dotenv").config();
+require("../lib/bootstrap");
 const {
   loadState,
   saveState,
@@ -13,7 +13,8 @@ const {
 } = require("../lib/state");
 
 const state = loadState();
-const clearAll = process.env.CLEAR_ALL_STATE === "true";
+const clearAll =
+  process.argv.includes("--clear-all") || process.env.CLEAR_ALL_STATE === "true";
 
 state.date = todayLocal();
 state.daily = { likes: 0, comments: 0, posts: 0, cycles: 0 };

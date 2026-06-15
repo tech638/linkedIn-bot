@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-require("dotenv").config();
+require("../lib/bootstrap");
 const { loadGroupsPortfolio } = require("../lib/groups");
 const { loadState } = require("../lib/state");
 
