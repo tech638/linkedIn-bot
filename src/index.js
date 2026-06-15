@@ -14,6 +14,7 @@ const {
   pickGroupForCycle,
   isWithinActiveHours,
   canStartCycleNow,
+  cycleWouldExtendPastActiveHours,
 } = require("./scheduler");
 const { runEngagement, runCooldown } = require("./engagement");
 const { runPost } = require("./post");
@@ -76,10 +77,10 @@ async function loadPortfolio() {
     const url = fixedGroupUrl();
     if (!url) {
       throw new Error(
-        "USE_SHEET_GROUPS=false but no FIXED_GROUP_URL / TEST_GROUP_URL in hardcoded-config.js."
+        "Sheet skipped but no FIXED_GROUP_URL in hardcoded-config.js."
       );
     }
-    console.log("Fixed group mode: sheet skipped.");
+    console.log(`Fixed group mode: ${url}`);
     return [groupFromFixedUrl(url)];
   }
 
@@ -214,6 +215,12 @@ async function runOneCycle() {
         `Outside active hours (${config.scheduling.activeHoursStart}:00–${config.scheduling.activeHoursEnd}:00). Skipping cycle.`
       );
       return { skipped: true, reason: "outside_hours" };
+    }
+    if (cycleWouldExtendPastActiveHours(config)) {
+      console.log(
+        `Too late to start — cycle would run past ${config.scheduling.activeHoursEnd}:00. Skipping.`
+      );
+      return { skipped: true, reason: "too_late_in_window" };
     }
     if (!canStartCycleNow(config, state)) {
       if (state.daily.cycles >= config.scheduling.cyclesPerDay) {

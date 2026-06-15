@@ -57,8 +57,7 @@ async function runPost(page, group, config, limits, state) {
 
   const posts = loadPosts();
   const picked = pickPost(group, posts, state);
-  let text = picked.text;
-  text = applyUtm(text, group.utmSlug, config.attribution.defaultUtm);
+  let text = applyUtm(picked.text, group.utmSlug, config.attribution.defaultUtm);
 
   if (picked.id && picked.id !== "sheet") {
     console.log(

@@ -5,6 +5,7 @@
   "main": "src/daemon.js",
   "scripts": {
     "start": "node index.js",
+    "daemon": "node index.js",
     "setup": "node scripts/setup-check.js",
     "cycle": "node scripts/run-one-cycle.js",
     "verify": "node src/verify.js",

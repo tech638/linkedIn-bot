@@ -2,6 +2,7 @@ const {
   getLinkedInPage,
   likePostsInFeed,
   commentOnPostsInFeed,
+  scrollToGroupComposer,
   sleep,
 } = require("../lib/linkedin");
 const { applyLimits, canLike, canComment } = require("./limits");
@@ -40,6 +41,10 @@ async function runEngagement(page, group, config, state, limits) {
       max: config.engagement.commentDelayMaxMs,
     });
     state.daily.comments += comments;
+  }
+
+  if (likes > 0 || comments > 0) {
+    await scrollToGroupComposer(liPage);
   }
 
   return { likes, comments };

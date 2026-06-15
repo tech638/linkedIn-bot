@@ -11,6 +11,13 @@ const {
   msUntilActiveStart,
   getCycleDelayMs,
   plannedCycleHours,
+  canStartCycleNow,
+  cycleWouldExtendPastActiveHours,
+  formatNowInConfigTz,
+  formatTimeInConfigTz,
+  msUntilNextCycleSlot,
+  describeNextCycleSlot,
+  getRemainingCycleSlots,
 } = require("./scheduler");
 
 const ROOT = path.join(__dirname, "..");
@@ -60,12 +67,33 @@ async function daemonLoop() {
   console.log(
     `Cycles/day: ${config.scheduling.cyclesPerDay} | Active hours: ${config.scheduling.activeHoursStart}:00–${config.scheduling.activeHoursEnd}:00 (${tz})`
   );
-  console.log(`Planned cycle hours: ${plannedCycleHours(config).join(", ")}`);
-  const delayMin = config.scheduling.interCycleDelayMinMs;
-  const delayMax = config.scheduling.interCycleDelayMaxMs;
+  const inWindow = isWithinActiveHours(config);
   console.log(
-    `Delay between cycles: ~${Math.round(delayMin / 60000)}–${Math.round(delayMax / 60000)} min\n`
+    `Now in ${tz}: ${formatNowInConfigTz()} — ${inWindow ? "inside active window" : "outside active window (will sleep until 8:00)"}`
   );
+  console.log(`Planned cycle hours: ${plannedCycleHours(config).join(", ")} (±20 min jitter)`);
+  if (!isTestMode()) {
+    const state = loadState();
+    const next = describeNextCycleSlot(config, state);
+    if (next.runAt && !next.dueNow) {
+      console.log(
+        `Next cycle scheduled: ${formatTimeInConfigTz(next.runAt)} (in ~${Math.round(next.ms / 60000)} min)`
+      );
+    } else if (next.dueNow) {
+      console.log("Next cycle: due now at current slot");
+    } else if (state.daily.cycles >= config.scheduling.cyclesPerDay) {
+      console.log("Today's cycles complete — waiting for tomorrow.");
+    } else {
+      console.log("No more cycle slots today — waiting for tomorrow.");
+    }
+  } else {
+    const delayMin = config.scheduling.interCycleDelayMinMs;
+    const delayMax = config.scheduling.interCycleDelayMaxMs;
+    console.log(
+      `Test mode delay between cycles: ~${Math.round(delayMin / 60000)}–${Math.round(delayMax / 60000)} min`
+    );
+  }
+  console.log("");
 
   let lastVerify = 0;
   const VERIFY_INTERVAL_MS = isTestMode() ? 5 * 60 * 1000 : 30 * 60 * 1000;
@@ -73,7 +101,7 @@ async function daemonLoop() {
   while (true) {
     const state = loadState();
 
-    if (!isTestMode() && !isWithinActiveHours(config)) {
+    if (!isWithinActiveHours(config)) {
       const wait = msUntilActiveStart(config);
       console.log(
         `Outside active hours. Sleeping until ${config.scheduling.activeHoursStart}:00 (${Math.round(wait / 3600000)}h)...`
@@ -89,10 +117,46 @@ async function daemonLoop() {
     }
 
     if (state.daily.cycles >= config.scheduling.cyclesPerDay) {
+      const wait = msUntilActiveStart(config);
       console.log(
-        `Daily cycles complete (${state.daily.cycles}/${config.scheduling.cyclesPerDay}). Waiting for tomorrow...`
+        `Daily cycles complete (${state.daily.cycles}/${config.scheduling.cyclesPerDay}). Sleeping until ${config.scheduling.activeHoursStart}:00 (${Math.round(wait / 3600000)}h)...`
       );
-      await sleep(15 * 60 * 1000);
+      await sleep(Math.min(wait, 60 * 60 * 1000));
+      continue;
+    }
+
+    if (!isTestMode()) {
+      const remaining = getRemainingCycleSlots(config, state);
+      if (!remaining.length) {
+        const wait = msUntilActiveStart(config);
+        console.log(
+          `No cycle slots left today. Sleeping until ${config.scheduling.activeHoursStart}:00 (${Math.round(wait / 3600000)}h)...`
+        );
+        await sleep(Math.min(wait, 60 * 60 * 1000));
+        continue;
+      }
+
+      const slotWait = msUntilNextCycleSlot(config, state);
+      if (slotWait > 60 * 1000) {
+        const next = describeNextCycleSlot(config, state);
+        console.log(
+          `Waiting for cycle ${state.daily.cycles + 1} slot — ${formatTimeInConfigTz(next.runAt)} (in ~${Math.round(slotWait / 60000)} min)`
+        );
+        await sleep(Math.min(slotWait, 60 * 60 * 1000));
+        continue;
+      }
+    }
+
+    if (!canStartCycleNow(config, state)) {
+      if (cycleWouldExtendPastActiveHours(config)) {
+        const wait = msUntilActiveStart(config);
+        console.log(
+          `Too late to start cycle — would run past ${config.scheduling.activeHoursEnd}:00. Sleeping until ${config.scheduling.activeHoursStart}:00...`
+        );
+        await sleep(Math.min(wait, 60 * 60 * 1000));
+      } else {
+        await sleep(15 * 60 * 1000);
+      }
       continue;
     }
 
@@ -105,14 +169,23 @@ async function daemonLoop() {
 
     const after = loadState();
 
-    if (config.scheduling.cyclesPerDay > 1) {
-      const delay = getCycleDelayMs(config);
-      console.log(
-        `Next cycle in ~${Math.round(delay / 60000)} min (${after.daily.cycles}/${config.scheduling.cyclesPerDay} done today)`
-      );
-      await sleep(delay);
-    } else {
-      await sleep(60 * 60 * 1000);
+    if (isTestMode()) {
+      if (config.scheduling.cyclesPerDay > 1) {
+        const delay = getCycleDelayMs(config);
+        console.log(
+          `Next cycle in ~${Math.round(delay / 60000)} min (${after.daily.cycles}/${config.scheduling.cyclesPerDay} done today)`
+        );
+        await sleep(delay);
+      } else {
+        await sleep(60 * 60 * 1000);
+      }
+    } else if (after.daily.cycles < config.scheduling.cyclesPerDay) {
+      const next = describeNextCycleSlot(config, after);
+      if (next.runAt && next.ms > 60 * 1000) {
+        console.log(
+          `Next cycle at ${formatTimeInConfigTz(next.runAt)} (in ~${Math.round(next.ms / 60000)} min) — ${after.daily.cycles}/${config.scheduling.cyclesPerDay} done today`
+        );
+      }
     }
   }
 }
